@@ -1,7 +1,7 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import re
-from model.Product import Product
+from utils.app_utils import Product
 """
 .-_.-.
 TODO: Make the input to be a section url. Then the scrapper must get all the subsections and finally get every product from them.
@@ -57,7 +57,6 @@ def get_product_price_usd(soup):
     match = re.search(r'\$ ([\d,]+(\.\d{2})?)', price)
     if match:
         usd_price = match.group(1)
-        # Remove commas from the price string and convert to float
         return float(usd_price.replace(',', ''))
     return 0.0
 
@@ -66,7 +65,6 @@ def get_product_price_s(soup):
     match = re.search(r'S/ ([\d,]+(\.\d{2})?)', price)
     if match:
         s_price = match.group(1)
-        # Remove commas from the price string and convert to float
         return float(s_price.replace(',', ''))
     return 0.0
 

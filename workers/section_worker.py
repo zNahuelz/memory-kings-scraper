@@ -1,11 +1,10 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-import pandas as pd
 import re
-from model.Product import Product
-from model.Section import Section
-from model.Subsection import Subsection
-import subsection_worker as ssw
+from utils.app_utils import Product
+from utils.app_utils import Section
+from utils.app_utils import Subsection
+from . import subsection_worker as ssw
 
 
 def get_soup(url):
