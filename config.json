@@ -1,6 +1,5 @@
 {
     "version":0.5,
-    "wait_time": 30,
     "sections": {
         "ACCESORIOS": "https://www.memorykings.pe/subcategorias/1/accesorios",
         "ACCESORIOS_LAPTOPS": "https://www.memorykings.pe/subcategorias/37/accesorios-para-laptops",

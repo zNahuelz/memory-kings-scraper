@@ -19,6 +19,7 @@ def main(products,subsection_name):
         worksheet.write(row,col+8,product.image)
         row+=1
     workbook.close()
+    print(f'[INFO] : Archivo excel guardado correctamente. Nombre: {subsection_name}.xlsx')
 
 def write_header(worksheet,workbook):
     cell_format = workbook.add_format({'bold':True})
@@ -28,8 +29,6 @@ def write_header(worksheet,workbook):
     for i in header:
         worksheet.write(row,col,i,cell_format)
         col+=1
-    print('[INFO] : Columna de archivo Excel impresa.')
-    
 
 if __name__ == "__main__":
     main()

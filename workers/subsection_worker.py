@@ -1,14 +1,6 @@
-from urllib.request import urlopen
-from bs4 import BeautifulSoup
 import re
-from utils.app_utils import Product
 from utils.app_utils import Section
-from utils.app_utils import Subsection
-
-def get_soup(url):
-    page = urlopen(url)
-    html = page.read().decode("utf-8")
-    return BeautifulSoup(html,"html.parser")
+from utils.app_utils import get_soup 
 
 def get_product_list(section: Section):
     products_urls = []

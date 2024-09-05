@@ -1,29 +1,6 @@
-from urllib.request import urlopen
-from bs4 import BeautifulSoup
 import re
 from utils.app_utils import Product
-"""
-.-_.-.
-TODO: Make the input to be a section url. Then the scrapper must get all the subsections and finally get every product from them.
-"""
-
-PRODUCT_LIST = [
-    'https://www.memorykings.pe/producto/328122/procesador-intel-cel-g5905-3-5ghz-4mb-1200',
-    'https://www.memorykings.pe/producto/329566/procesador-intel-core-i3-10105-3-7ghz-6mb-1200',
-    'https://www.memorykings.pe/producto/328729/procesador-intel-core-i3-10105f-3-7ghz-6mb-1200',
-    'https://www.memorykings.pe/producto/326672/procesador-intel-core-i5-10400-2-9ghz-12mb-1200',
-    'https://www.memorykings.pe/producto/327831/procesador-intel-core-i5-10400f-2-9ghz-12mb-1200',
-    'https://www.memorykings.pe/producto/350161/procesador-amd-ryzen-5-8400f-4-7ghz-16mb-6c-am5',
-    'https://www.memorykings.pe/producto/349387/procesador-amd-ryzen-5-8500g-3-5ghz-16mb-6c-am5',
-    'https://www.memorykings.pe/producto/349388/procesador-amd-ryzen-5-8600g-4-3ghz-16mb-6c-am5',
-    'https://www.memorykings.pe/producto/350163/procesador-amd-ryzen-7-8700f-4-1ghz-16mb-8c-am5',
-    'https://www.memorykings.pe/producto/349389/procesador-amd-ryzen-7-8700g-4-2ghz-16mb-8c-am5'
-]
-
-def get_soup(url):
-    page = urlopen(url)
-    html = page.read().decode("utf-8")
-    return BeautifulSoup(html,"html.parser")
+from utils.app_utils import get_soup 
 
 def get_product_title(soup):
     return soup.find('h1').get_text()
@@ -76,7 +53,6 @@ def get_product_description(soup):
     desc = soup.find('div', class_="descripcion-content").get_text()
     return ' '.join(desc.split()) 
 
-
 def get_product(product_url):
     soup = get_soup(product_url)
     title = get_product_title(soup)
@@ -90,7 +66,6 @@ def get_product(product_url):
     image = get_product_image(soup,title)
     description = get_product_description(soup)
     return Product(title,subtitle,part_number,code,stock,price_usd,price_s,image,description)
-
 
 def main(url):
     return get_product(url)
