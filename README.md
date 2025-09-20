@@ -1,5 +1,5 @@
 # Descripción
-memory-kings-scrapper es un [web scrapper](https://www.parsehub.com/blog/what-is-web-scraping/) desarrollado utilizando Python con propósitos recreativos y educativos. Además, es una buena herramienta para extraer un listado de productos de distintas categorías en formato Excel para realizar builds de computadoras cómodamente.
+memory-kings-scraper es un [web scraper](https://www.parsehub.com/blog/what-is-web-scraping/) desarrollado utilizando Python con propósitos recreativos y educativos. Además, es una buena herramienta para extraer un listado de productos de distintas categorías en formato Excel para realizar builds de computadoras cómodamente.
 
 ## Características
 - Extracción de todos los productos por categorías de la web
