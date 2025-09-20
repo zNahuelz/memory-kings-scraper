@@ -1,161 +1,110 @@
-import workers.section_worker as section_worker
-import workers.subsection_worker as subsection_worker
-import workers.product_worker as product_worker
-import utils.excel_writer as excel_writer
-import utils.csv_writer as csv_writer
-import time
-from datetime import datetime
 import argparse
 import json
 import sys
-import utils.validations as v
-
-"""TODO: 
-*Permitir exportar TODOS los productos en un mismo archivo excel.
-*Refactorizar lo que haga falta.
-"""
-
-def get_version():
-    try:
-        version = read_config()['version']
-        print(f'Version: {str(get_version())} Fuente: https://github.com/zNahuelz')
-    except:
-        return '---'
-    
-def read_config():
-    try:
-        with open('config.json','r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print('[ERROR] : Archivo de configuración no encontrado.')
-    except:
-        return {}
-    
-def get_section(name):
-    try:
-        config = read_config()
-        return config['sections'].get(name)
-    except:
-        return ''
-
-def get_wait_time():
-    try:
-        return read_config()['wait_time']
-    except:
-        return 10
-    
+import time
+import scrapers.scrape_product as scrape_product
+import scrapers.scrape_section as scrape_section
+import scrapers.scrape_category as scrape_category
+import scrapers.export_sections as export_sections
+import utils.excel_writer as excel_writer
+import utils.csv_writer as csv_writer
+from datetime import datetime
+from utils import validations
+from utils.helpers import logo
+from utils.helpers import get_info
+from utils.helpers import read_sections_file
+from utils.helpers import get_section
 
 def execute(args):
-    if v.validate_time(int(args.tiempo)):
+    if(args.refresh_sections):
+        export_sections.main()
+        exit()
+    
+    if validations.validate_time(int(args.time)):
+        print(logo())
         start_extraction(args,int(args.extension))
     else:
         print('Tiempo de espera entre extracción de productos mayor a 60 segundos. ¿Desea continuar? (S/N)')
         response = input()
-        if v.validate_condition(response) and v.affirmative_condition(response):
+        if validations.validate_condition(response.upper()) and validations.affirmative_condition(response):
             start_extraction(args,int(args.extension))
         else:
             print('Operación cancelada o respuesta invalida. Debe ingresar S ó N')
             exit()
 
 
-def start_extraction(args,extension):
+def start_extraction(args, extension):
     START_DATE = datetime.now()
     total_products = 0
-    products = []
+    all_products = []  
     print(f'[INFO] : Proceso iniciado el {START_DATE.strftime("%d/%m/%Y %H:%M:%S")}')
-
     start = time.time()
 
-    if args.seccion != "FULL":
-        subsections = section_worker.main(get_section(args.seccion))
-        print(f'[INFO] : Extrayendo productos de la sección: {args.seccion}')
-        print(f'[INFO] : Tiempo de espera entre productos: {args.tiempo} segundos.')
+    if args.full and args.full.upper() == "S":
+        config = read_sections_file()
+        section_names = list(config.get("sections",{}).keys())
+        print(f"[WARN] : Extrayendo TODAS las secciones ({len(section_names)}) definidas en /data/sections.json - Este proceso es tardio.")
+    else:
+        if not args.section:
+            print(f"[ERROR] : Debe especificar al menos una sección con la opción -s o usar -f S para todas las secciones.")
+            return
+        section_names = [name.strip() for name in args.section.split(",")]
 
-        for i in subsections:
-            i.print_details()
-            print('Productos: ')
-            for p in i.products:
+    all_categories = []
+
+    for section_name in section_names:
+        section_config = get_section(section_name)
+        if not section_config:
+            print(f"[WARN] : Sección '{section_name}' no encontrada en /data/sections.json - Se recomienda ejecutar la herramienta con la opción -rs para refrescar el listado de secciones. Puede visualizar la ayuda con --help")
+            continue
+
+        categories = scrape_section.main(section_config)
+        print(f'[INFO] : Extrayendo productos de la sección: {section_name}')
+        print(f'[INFO] : Tiempo de espera entre productos: {args.time} segundos.')
+
+        for category in categories:
+            print(f"[INFO] Procesando categoría: {category.title}")
+            new_products = []
+
+            for p in category.products:
                 total_products += 1
-                time.sleep(int(args.tiempo))
-                product = product_worker.main(p)
-                product.print_details()
-                products.append(product)      
+                time.sleep(int(args.time))
 
-        if extension == 0:
-            excel_writer.main(products,args.seccion)
-        elif extension == 1:
-            csv_writer.main(products,args.seccion)
-        else:
-            excel_writer.main(products,args.seccion)
-            csv_writer.main(products,args.seccion)
+                product = scrape_product.main(p)
+                print(product)
 
-        end = time.time()
+                new_products.append(product)
+                all_products.append(product) 
 
-        elapsed_time = (end-start) / 60
+            category.products = new_products
+            all_categories.append(category) 
 
-        print(f'[INFO] : Productos encontrados: {str(total_products)}')
-        print(f'[INFO] : Tiempo transcurrido: {elapsed_time:.4f} minutos.')
-        print(f'[INFO] : HORA DE INICIO: {START_DATE.strftime("%d/%m/%Y %H:%M:%S")}')
-        print(f'[INFO] : HORA DE FINALIZACIÓN: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
-
-    else:
-        extract_full_site(args,extension)
-
-##TODO....
-def extract_full_site(args,extension):
-    START_DATE = datetime.now()
-    total_products = 0
-    products = []
-    sections = []
-    config = read_config()
-    for i in config['sections']:
-        sections.append(i.values())
-    
-    print(f'[INFO] : Proceso iniciado el {START_DATE.strftime("%d/%m/%Y %H:%M:%S")}')
-
-    start = time.time()
-
-    for i in sections:
-        subsection = section_worker.main(i)
-        print(f'[INFO] : Extrayendo productos de la sección: {args.seccion}')
-        print(f'[INFO] : Tiempo de espera entre productos: {args.tiempo} segundos.')
-        subsection.print_details()
-        print('Productos: ')
-        for p in subsection.products:
-            total_products += 1
-            time.sleep(int(args.tiempo))
-            product = product_worker.main(p)
-            product.print_details()
-            products.append(product)      
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
     if extension == 0:
-        excel_writer.main(products,args.seccion)
+        excel_writer.write_excel(all_categories, filename=f"export_{timestamp}.xlsx")
     elif extension == 1:
-        csv_writer.main(products,args.seccion)
+        csv_writer.export_categories(all_categories)
     else:
-        excel_writer.main(products,args.seccion)
-        csv_writer.main(products,args.seccion)
+        excel_writer.write_excel(all_categories, filename=f"export_{timestamp}.xlsx")
+        csv_writer.export_categories(all_categories)
 
     end = time.time()
-
-    elapsed_time = (end-start) / 60
-
-    print(f'[INFO] : Productos encontrados: {str(total_products)}')
+    elapsed_time = (end - start) / 60
+    print(f'[INFO] : Productos encontrados: {total_products}')
     print(f'[INFO] : Tiempo transcurrido: {elapsed_time:.4f} minutos.')
     print(f'[INFO] : HORA DE INICIO: {START_DATE.strftime("%d/%m/%Y %H:%M:%S")}')
     print(f'[INFO] : HORA DE FINALIZACIÓN: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
 
-
-    
 def main():
-    parser = argparse.ArgumentParser(prog = 'memory_kings_scrapper',description = 'Web scrapper para el sitio web de MemoryKings Peru.')
+    parser = argparse.ArgumentParser(prog = "memory_kings_scrapper",description = f"{get_info()} \n Web Scrapper para el sitio web de MemoryKings Perú.",formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-s','--seccion',type=str,help='Nombre de la sección a exportar. Vease el listado de secciones en el archivo config.json',default='SOFTWARE_WIN_OFFICE')
-    parser.add_argument('-t','--tiempo',type=v.reject_negatives,help='Tiempo de espera entre obtención de productos. Entre 0 y 60 segundos.',default=0)
-    parser.add_argument('-f','--full',type=str,help='Exportar todos los productos de la web en un solo archivo. (S/N)',default='n')
-    parser.add_argument('-e','--extension',type=v.reject_negatives,help='Tipo de archivo de destino. 0 -> EXCEL | 1 -> CSV | 2 -> EXCEL y CSV',default=0)
+    parser.add_argument('-s','--section',type=str,help='Nombre de las secciones a exportar separadas por comas (,). Vease el listado de secciones en el archivo /data/sections.json',default='SOFTWARE_MICROSOFT_WINDOWS_OFFICE')
+    parser.add_argument('-t','--time',type=validations.reject_negatives,help='Tiempo de espera entre solicitudes. Entre 0 y 60 segundos.',default=0)
+    parser.add_argument('-f','--full',type=str,help='Exportar toda la web. (S/N)',default='N')
+    parser.add_argument('-e','--extension',type=validations.reject_negatives,help='Tipo de archivo de destino. 0 = EXCEL // 1 = CSV // 2 = EXCEL y CSV',default=0)
+    parser.add_argument('-rs','--refresh-sections',help='Refresca las secciones de la web. Son guardadas en /data/sections.json para su posterior uso.',action="store_true")
 
     args = parser.parse_args()
-
     execute(args)
 
 if __name__== '__main__':

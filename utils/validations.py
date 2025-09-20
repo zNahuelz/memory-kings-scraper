@@ -1,21 +1,6 @@
 import json
 import argparse
-
-def read_config():
-    try:
-        with open('config.json','r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print('[ERROR] : Archivo de configuración no encontrado.')
-    except:
-        return {}
-    
-def get_section(name):
-    try:
-        config = read_config()
-        return config['sections'].get(name)
-    except:
-        return ''
+import os
     
 def validate_condition(input: str) -> bool:
     return input in ['y','Y','s','S','n','N']
@@ -32,5 +17,5 @@ def validate_time(input: int) -> bool:
 def reject_negatives(val):
     val = int(val)
     if val < 0:
-        raise argparse.ArgumentTypeError(f'Invalid value: {val} The value must be non-negative.')
+        raise argparse.ArgumentTypeError(f'Valor inválido: {val} El valor debe ser entero.')
     return val

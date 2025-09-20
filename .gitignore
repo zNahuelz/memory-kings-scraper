@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 *.xlsx
 *.csv
+
+Lib/
+Scripts/
+pyvenv.cfg

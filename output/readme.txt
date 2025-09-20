@@ -1,0 +1,1 @@
+Directorio dónde se almacenan los archivos .xlsx y .csv de las extracciones.

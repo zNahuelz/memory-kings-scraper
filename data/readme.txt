@@ -1,0 +1,1 @@
+Directorio dónde se almacena sections.json, el cual contiene el listado de secciones de la web; de las cuales se pueden extraer sus categorías y productos.
