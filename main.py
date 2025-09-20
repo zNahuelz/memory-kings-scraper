@@ -96,7 +96,7 @@ def start_extraction(args, extension):
     print(f'[INFO] : HORA DE FINALIZACIÓN: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
 
 def main():
-    parser = argparse.ArgumentParser(prog = "memory_kings_scrapper",description = f"{get_info()} \n Web Scrapper para el sitio web de MemoryKings Perú.",formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(prog = "memory_kings_scraper",description = f"{get_info()} \n Web Scraper para el sitio web de MemoryKings Perú.",formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-s','--section',type=str,help='Nombre de las secciones a exportar separadas por comas (,). Vease el listado de secciones en el archivo /data/sections.json',default='SOFTWARE_MICROSOFT_WINDOWS_OFFICE')
     parser.add_argument('-t','--time',type=validations.reject_negatives,help='Tiempo de espera entre solicitudes. Entre 0 y 60 segundos.',default=0)
